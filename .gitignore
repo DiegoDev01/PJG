@@ -1,0 +1,44 @@
+# =================================
+# AUDIOS E VIDEOS
+# =================================
+*.mp3
+*.wav
+*.m4a
+*.aac
+*.flac
+*.ogg
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+
+# =================================
+# LEGENDAS E ARQUIVOS GERADOS
+# =================================
+*.ass
+*.srt
+*.log
+*.tmp
+
+# =================================
+# PASTAS DE PRODUCAO E PESADOS
+# =================================
+01_gameplay_bruta/
+02_narracao_e_roteiro/*.txt
+03_legendas_sync/
+04_cortes_prontos/
+
+# =================================
+# PYTHON E AMBIENTES VIRTUAIS
+# =================================
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# =================================
+# SISTEMA
+# =================================
+Thumbs.db
+.DS_Store
