@@ -1,0 +1,13 @@
+﻿{
+    "projeto": "PJG",
+    "versao": "2.0.0",
+    "idioma": "pt",
+    "resolucao": "1080x1920",
+    "fps": 60,
+    "formato": "9:16",
+    "encoder": "h264_amf",
+    "modo_producao": "narracao_roteiro",
+    "legendas_ativas": true,
+    "remover_silencios": true,
+    "selecao_cenas": "automatica"
+}
