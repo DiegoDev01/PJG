@@ -7,7 +7,7 @@ import re
 from difflib import SequenceMatcher
 from faster_whisper import WhisperModel
 
-BASE_DIR = r"D:\PJG"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR_GAMEPLAY = os.path.join(BASE_DIR, "01_gameplay_bruta")
 DIR_NARRACAO = os.path.join(BASE_DIR, "02_narracao_e_roteiro")
 DIR_LEGENDAS = os.path.join(BASE_DIR, "03_legendas_sync")
