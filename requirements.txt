@@ -1,2 +1,10 @@
 faster-whisper==1.2.1
 av>=11,<19
+google-genai==3.4.0
+python-dotenv==1.2.4
+requests
+SQLAlchemy
+feedparser
+beautifulsoup4
+schedule
+trafilatura==2.3.1

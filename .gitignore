@@ -14,7 +14,7 @@
 *.webm
 
 # =================================
-# LEGENDAS E ARQUIVOS GERADOS
+# LEGENDAS E ARQUIVOS TEMPORARIOS
 # =================================
 *.ass
 *.srt
@@ -22,7 +22,7 @@
 *.tmp
 
 # =================================
-# PASTAS DE PRODUCAO E PESADOS
+# PASTAS DE PRODUCAO E ARQUIVOS PESADOS
 # =================================
 01_gameplay_bruta/
 02_narracao_e_roteiro/*.txt
@@ -33,7 +33,8 @@
 # PYTHON E AMBIENTES VIRTUAIS
 # =================================
 __pycache__/
-*.pyc
+**/__pycache__/
+*.py[cod]
 .venv/
 venv/
 
@@ -42,3 +43,23 @@ venv/
 # =================================
 Thumbs.db
 .DS_Store
+
+# =================================
+# CREDENCIAIS E CHAVES DE API
+# =================================
+.env
+.env.*
+!.env.example
+
+# =================================
+# BANCO DE DADOS LOCAL
+# =================================
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+
+# =================================
+# ARQUIVOS DE BACKUP
+# =================================
+*.bak
+*.old
