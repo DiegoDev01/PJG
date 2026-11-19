@@ -1,5 +1,6 @@
-import schedule
 import time
+
+import schedule
 
 from intelligence.pesquisa import pesquisar_noticias
 

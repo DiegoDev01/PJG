@@ -1,5 +1,5 @@
+from database import models  # noqa: F401
 from database.database import Base, engine
-from database import models
 from interface.main_window import iniciar_interface
 
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import String, Text, DateTime
+from sqlalchemy import DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database.database import Base
@@ -17,6 +17,4 @@ class Pauta(Base):
     classificacao: Mapped[str] = mapped_column(String(30), default="pendente")
     relevancia: Mapped[int] = mapped_column(default=0)
     status: Mapped[str] = mapped_column(String(30), default="aguardando")
-    data_criacao: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now
-    )
+    data_criacao: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)

@@ -5,19 +5,14 @@ from google import genai
 
 from intelligence.providers.base import ProvedorIA
 
-
 # Carrega as variáveis do arquivo .env na raiz do projeto
 load_dotenv()
 
 
 class GeminiProvider(ProvedorIA):
-
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.modelo = os.getenv(
-            "GEMINI_MODEL",
-            "gemini-3.5-flash-lite"
-        )
+        self.modelo = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
         self.client = None
 
@@ -29,18 +24,13 @@ class GeminiProvider(ProvedorIA):
 
     def gerar_texto(self, prompt: str) -> str:
         if not self.client:
-            raise RuntimeError(
-                "GEMINI_API_KEY não encontrada no arquivo .env."
-            )
+            raise RuntimeError("GEMINI_API_KEY não encontrada no arquivo .env.")
 
         resposta = self.client.models.generate_content(
-            model=self.modelo,
-            contents=prompt
+            model=self.modelo, contents=prompt
         )
 
         if not resposta.text:
-            raise RuntimeError(
-                "O Gemini não retornou conteúdo textual."
-            )
+            raise RuntimeError("O Gemini não retornou conteúdo textual.")
 
         return resposta.text.strip()

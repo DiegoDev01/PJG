@@ -8,9 +8,10 @@ def verificar_ffmpeg():
     try:
         resultado = subprocess.run(
             ["ffmpeg", "-version"],
+            check=False,
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
 
         return resultado.returncode == 0
@@ -24,17 +25,17 @@ def obter_duracao_audio(caminho):
 
     comando = [
         "ffprobe",
-        "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
-        str(caminho)
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        str(caminho),
     ]
 
     resultado = subprocess.run(
-        comando,
-        capture_output=True,
-        text=True,
-        timeout=30
+        comando, check=False, capture_output=True, text=True, timeout=30
     )
 
     if resultado.returncode != 0:
@@ -43,12 +44,7 @@ def obter_duracao_audio(caminho):
     return float(resultado.stdout.strip())
 
 
-def preparar_narracao(
-    entrada,
-    saida,
-    normalizar=True,
-    remover_silencios=False
-):
+def preparar_narracao(entrada, saida, normalizar=True, remover_silencios=False):
     """
     Prepara a narração para o projeto.
 
@@ -62,9 +58,7 @@ def preparar_narracao(
     saida = Path(saida)
 
     if not entrada.exists():
-        raise FileNotFoundError(
-            f"Arquivo de narração não encontrado: {entrada}"
-        )
+        raise FileNotFoundError(f"Arquivo de narração não encontrado: {entrada}")
 
     if not verificar_ffmpeg():
         raise RuntimeError("FFmpeg não encontrado no sistema.")
@@ -78,46 +72,33 @@ def preparar_narracao(
 
     if remover_silencios:
         filtros.append(
-            "silenceremove="
-            "stop_periods=-1:"
-            "stop_duration=0.35:"
-            "stop_threshold=-38dB"
+            "silenceremove=stop_periods=-1:stop_duration=0.35:stop_threshold=-38dB"
         )
 
     if normalizar:
-        filtros.append(
-            "loudnorm=I=-16:TP=-1.5:LRA=11"
-        )
+        filtros.append("loudnorm=I=-16:TP=-1.5:LRA=11")
 
-    filtros.append(
-        "aresample=48000"
-    )
+    filtros.append("aresample=48000")
 
-    filtros.append(
-        "aformat=sample_fmts=s16:channel_layouts=stereo"
-    )
+    filtros.append("aformat=sample_fmts=s16:channel_layouts=stereo")
 
     comando = [
         "ffmpeg",
         "-y",
-        "-i", str(entrada),
+        "-i",
+        str(entrada),
         "-vn",
-        "-af", ",".join(filtros),
-        "-c:a", "pcm_s16le",
-        str(saida)
+        "-af",
+        ",".join(filtros),
+        "-c:a",
+        "pcm_s16le",
+        str(saida),
     ]
 
-    resultado = subprocess.run(
-        comando,
-        capture_output=True,
-        text=True
-    )
+    resultado = subprocess.run(comando, check=False, capture_output=True, text=True)
 
     if resultado.returncode != 0:
-        raise RuntimeError(
-            "Falha ao preparar a narração:\n"
-            + resultado.stderr[-3000:]
-        )
+        raise RuntimeError("Falha ao preparar a narração:\n" + resultado.stderr[-3000:])
 
     if not saida.exists() or saida.stat().st_size == 0:
         raise RuntimeError("O arquivo de áudio não foi gerado corretamente.")
@@ -130,5 +111,5 @@ def preparar_narracao(
         "duracao": round(duracao, 2),
         "formato": "WAV",
         "frequencia": "48000 Hz",
-        "canais": "Estéreo"
+        "canais": "Estéreo",
     }

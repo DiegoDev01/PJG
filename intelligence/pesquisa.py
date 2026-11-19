@@ -1,17 +1,16 @@
 import feedparser
 import requests
 import trafilatura
-
 from bs4 import BeautifulSoup
-from intelligence.fontes import obter_fontes
-from intelligence.analise import analisar_noticia
+
 from database.database import SessionLocal
 from database.models import Pauta
-
+from intelligence.analise import analisar_noticia
+from intelligence.fontes import obter_fontes
 
 TEMAS_MONITORADOS = {
     "GTA VI": ["gta vi", "gta 6", "grand theft auto 6"],
-    "Games": ["videogame", "games", "playstation", "xbox", "nintendo"]
+    "Games": ["videogame", "games", "playstation", "xbox", "nintendo"],
 }
 
 
@@ -21,11 +20,7 @@ def extrair_conteudo_completo(url: str, resumo: str) -> str:
 
     try:
         resposta = requests.get(
-            url,
-            headers={
-                "User-Agent": "Mozilla/5.0 PJG News Reader"
-            },
-            timeout=(5, 8)
+            url, headers={"User-Agent": "Mozilla/5.0 PJG News Reader"}, timeout=(5, 8)
         )
 
         resposta.raise_for_status()
@@ -35,7 +30,7 @@ def extrair_conteudo_completo(url: str, resumo: str) -> str:
             url=url,
             include_comments=False,
             include_tables=False,
-            favor_precision=True
+            favor_precision=True,
         )
 
         if conteudo and len(conteudo) > len(resumo):
@@ -44,7 +39,7 @@ def extrair_conteudo_completo(url: str, resumo: str) -> str:
     except requests.RequestException as erro:
         print(f"Erro ao acessar matéria: {erro}")
 
-    except Exception as erro:
+    except Exception as erro:  # noqa: BLE001
         print(f"Erro na extração: {erro}")
 
     return resumo
@@ -61,8 +56,7 @@ def pesquisar_noticias():
                 titulo = noticia.get("title", "")
 
                 resumo = BeautifulSoup(
-                    noticia.get("summary", ""),
-                    "html.parser"
+                    noticia.get("summary", ""), "html.parser"
                 ).get_text(" ", strip=True)
 
                 texto = f"{titulo} {resumo}".lower()
@@ -83,19 +77,11 @@ def pesquisar_noticias():
                 else:
                     conteudo = extrair_conteudo_completo(url, resumo)
 
-                analise = analisar_noticia(
-                    titulo,
-                    conteudo,
-                    fonte["nome"]
-                )
+                analise = analisar_noticia(titulo, conteudo, fonte["nome"])
 
-                resultados.append({
-                    **analise,
-                    "url": url,
-                    "temas": temas
-                })
+                resultados.append({**analise, "url": url, "temas": temas})
 
-        except Exception as erro:
+        except Exception as erro:  # noqa: BLE001
             print(f"Erro em {fonte['nome']}: {erro}")
 
     return resultados
@@ -127,7 +113,7 @@ def salvar_noticias(noticias):
                 fonte=noticia["fonte"],
                 url=url,
                 classificacao=noticia["classificacao"],
-                relevancia=noticia["relevancia"]
+                relevancia=noticia["relevancia"],
             )
 
             sessao.add(pauta)

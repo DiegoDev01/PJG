@@ -8,7 +8,7 @@ def gerar_roteiro(
     conteudo: str,
     formato: str = "short",
     fonte: str = "",
-    classificacao: str = "pendente"
+    classificacao: str = "pendente",
 ) -> dict:
 
     ia = criar_provedor()
@@ -75,7 +75,6 @@ Entregue somente a análise.
 
     # ETAPA 2: Criação do roteiro
     if formato == "short":
-
         prompt_roteiro = f"""
 Você é roteirista do canal brasileiro Pela Janela Games.
 
@@ -141,7 +140,6 @@ Entregue somente o roteiro.
 """
 
     else:
-
         prompt_roteiro = f"""
 Você é roteirista do canal Pela Janela Games.
 
@@ -177,7 +175,7 @@ Entregue somente o roteiro.
         "titulo": titulo,
         "formato": formato,
         "analise": analise,
-        "roteiro": roteiro
+        "roteiro": roteiro,
     }
 
 
@@ -199,7 +197,7 @@ def gerar_roteiro_aprovado(pauta_id: int, formato: str = "short"):
             conteudo=pauta.assunto,
             formato=formato,
             fonte=pauta.fonte or "",
-            classificacao=pauta.classificacao
+            classificacao=pauta.classificacao,
         )
 
     finally:

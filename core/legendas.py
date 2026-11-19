@@ -1,13 +1,8 @@
-import subprocess
 from pathlib import Path
 
 
 def transcrever_audio(
-    caminho_audio,
-    modelo="small",
-    idioma="pt",
-    dispositivo="cpu",
-    compute_type="int8"
+    caminho_audio, modelo="small", idioma="pt", dispositivo="cpu", compute_type="int8"
 ):
     """
     Transcreve um áudio usando Faster-Whisper.
@@ -17,53 +12,41 @@ def transcrever_audio(
     caminho_audio = Path(caminho_audio)
 
     if not caminho_audio.exists():
-        raise FileNotFoundError(
-            f"Áudio não encontrado: {caminho_audio}"
-        )
+        raise FileNotFoundError(f"Áudio não encontrado: {caminho_audio}")
 
     try:
         from faster_whisper import WhisperModel
     except ImportError:
         raise RuntimeError(
-            "Faster-Whisper não está instalado. "
-            "Execute: pip install faster-whisper"
+            "Faster-Whisper não está instalado. Execute: pip install faster-whisper"
         )
 
     print(f"\nCarregando modelo Whisper: {modelo}")
 
-    whisper = WhisperModel(
-        modelo,
-        device=dispositivo,
-        compute_type=compute_type
-    )
+    whisper = WhisperModel(modelo, device=dispositivo, compute_type=compute_type)
 
     print("Iniciando transcrição...")
 
     segmentos, informacoes = whisper.transcribe(
-        str(caminho_audio),
-        language=idioma,
-        word_timestamps=True,
-        vad_filter=False
+        str(caminho_audio), language=idioma, word_timestamps=True, vad_filter=False
     )
 
     resultado = {
         "idioma": informacoes.language,
         "duracao": informacoes.duration,
         "palavras": [],
-        "texto_completo": ""
+        "texto_completo": "",
     }
 
     textos = []
 
     for segmento in segmentos:
-
         textos.append(segmento.text.strip())
 
         if not segmento.words:
             continue
 
         for palavra in segmento.words:
-
             if palavra.start is None or palavra.end is None:
                 continue
 
@@ -72,22 +55,21 @@ def transcrever_audio(
             if not texto:
                 continue
 
-            resultado["palavras"].append({
-                "texto": texto,
-                "inicio": float(palavra.start),
-                "fim": float(palavra.end)
-            })
+            resultado["palavras"].append(
+                {
+                    "texto": texto,
+                    "inicio": float(palavra.start),
+                    "fim": float(palavra.end),
+                }
+            )
 
     resultado["texto_completo"] = " ".join(textos)
 
     if not resultado["palavras"]:
-        raise RuntimeError(
-            "Nenhuma palavra foi identificada na transcrição."
-        )
+        raise RuntimeError("Nenhuma palavra foi identificada na transcrição.")
 
     print(
-        f"Transcrição concluída: "
-        f"{len(resultado['palavras'])} palavras identificadas."
+        f"Transcrição concluída: {len(resultado['palavras'])} palavras identificadas."
     )
 
     return resultado
@@ -102,9 +84,7 @@ def formatar_tempo_ass(segundos):
     minutos = int((segundos % 3600) // 60)
     segundos_inteiros = int(segundos % 60)
 
-    centesimos = int(round(
-        (segundos - int(segundos)) * 100
-    ))
+    centesimos = round((segundos - int(segundos)) * 100)
 
     if centesimos >= 100:
         segundos_inteiros += 1
@@ -118,10 +98,7 @@ def formatar_tempo_ass(segundos):
         horas += 1
         minutos = 0
 
-    return (
-        f"{horas}:{minutos:02d}:"
-        f"{segundos_inteiros:02d}.{centesimos:02d}"
-    )
+    return f"{horas}:{minutos:02d}:{segundos_inteiros:02d}.{centesimos:02d}"
 
 
 def agrupar_palavras(palavras, max_palavras=3):
@@ -134,17 +111,13 @@ def agrupar_palavras(palavras, max_palavras=3):
     atual = []
 
     for palavra in palavras:
-
         atual.append(palavra)
 
         texto = palavra["texto"]
 
-        terminou_frase = texto.endswith(
-            (".", "!", "?", ":", ";")
-        )
+        terminou_frase = texto.endswith((".", "!", "?", ":", ";"))
 
         if len(atual) >= max_palavras or terminou_frase:
-
             blocos.append(atual)
             atual = []
 
@@ -155,11 +128,7 @@ def agrupar_palavras(palavras, max_palavras=3):
 
 
 def gerar_legendas_ass(
-    transcricao,
-    caminho_saida,
-    fonte="Montserrat ExtraBold",
-    tamanho=84,
-    max_palavras=3
+    transcricao, caminho_saida, fonte="Montserrat ExtraBold", tamanho=84, max_palavras=3
 ):
     """
     Gera arquivo ASS vertical 1080x1920.
@@ -167,22 +136,14 @@ def gerar_legendas_ass(
     """
 
     caminho_saida = Path(caminho_saida)
-    caminho_saida.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+    caminho_saida.parent.mkdir(parents=True, exist_ok=True)
 
     palavras = transcricao.get("palavras", [])
 
     if not palavras:
-        raise ValueError(
-            "A transcrição não contém palavras."
-        )
+        raise ValueError("A transcrição não contém palavras.")
 
-    blocos = agrupar_palavras(
-        palavras,
-        max_palavras=max_palavras
-    )
+    blocos = agrupar_palavras(palavras, max_palavras=max_palavras)
 
     cabecalho = f"""[Script Info]
 Title: Legendas PJG
@@ -203,21 +164,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     linhas = [cabecalho]
 
     for bloco in blocos:
-
         inicio = bloco[0]["inicio"]
         fim = bloco[-1]["fim"]
 
-        texto = " ".join(
-            palavra["texto"]
-            for palavra in bloco
-        )
+        texto = " ".join(palavra["texto"] for palavra in bloco)
 
-        texto = (
-            texto
-            .replace("\\", "\\\\")
-            .replace("{", "\\{")
-            .replace("}", "\\}")
-        )
+        texto = texto.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}")
 
         # Centralização na região inferior do vídeo.
         texto_ass = f"{{\\an5\\pos(540,1320)}}{texto}"
@@ -231,17 +183,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         linhas.append(linha)
 
-    with open(
-        caminho_saida,
-        "w",
-        encoding="utf-8-sig"
-    ) as arquivo:
-
+    with open(caminho_saida, "w", encoding="utf-8-sig") as arquivo:
         arquivo.writelines(linhas)
 
     return {
         "sucesso": True,
         "arquivo": str(caminho_saida),
         "quantidade_palavras": len(palavras),
-        "quantidade_legendas": len(blocos)
+        "quantidade_legendas": len(blocos),
     }

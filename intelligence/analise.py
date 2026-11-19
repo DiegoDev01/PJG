@@ -11,16 +11,22 @@ def analisar_noticia(titulo: str, conteudo: str, fonte: str) -> dict:
     relevancia = 0
 
     # O assunto principal da notícia
-    palavras_principais = [
-        "gta 6", "gta vi", "grand theft auto 6"
-    ]
+    palavras_principais = ["gta 6", "gta vi", "grand theft auto 6"]
 
     # Informações relevantes sobre o jogo
     palavras_importantes = [
-        "rockstar games", "trailer", "lançamento",
-        "gameplay", "mapa", "lucia", "jason",
-        "vice city", "história", "personagem",
-        "missões", "mundo aberto"
+        "rockstar games",
+        "trailer",
+        "lançamento",
+        "gameplay",
+        "mapa",
+        "lucia",
+        "jason",
+        "vice city",
+        "história",
+        "personagem",
+        "missões",
+        "mundo aberto",
     ]
 
     # Pontuação pelo título
@@ -47,5 +53,5 @@ def analisar_noticia(titulo: str, conteudo: str, fonte: str) -> dict:
         "conteudo": conteudo,
         "fonte": fonte,
         "classificacao": classificacao,
-        "relevancia": min(relevancia, 10)
+        "relevancia": min(relevancia, 10),
     }

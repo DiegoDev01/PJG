@@ -6,9 +6,12 @@ def listar_pautas_pendentes():
     sessao = SessionLocal()
 
     try:
-        return sessao.query(Pauta).filter_by(
-            status="aguardando"
-        ).order_by(Pauta.relevancia.desc()).all()
+        return (
+            sessao.query(Pauta)
+            .filter_by(status="aguardando")
+            .order_by(Pauta.relevancia.desc())
+            .all()
+        )
     finally:
         sessao.close()
 

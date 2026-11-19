@@ -13,6 +13,4 @@ def criar_provedor():
     if provedor == "ollama":
         return OllamaProvider()
 
-    raise ValueError(
-        f"Provedor de IA não reconhecido: {provedor}"
-    )
+    raise ValueError(f"Provedor de IA não reconhecido: {provedor}")

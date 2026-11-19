@@ -1,10 +1,11 @@
-﻿import os
-import sys
-import random
-import subprocess
 import argparse
+import os
+import random
 import re
+import subprocess
+import sys
 from difflib import SequenceMatcher
+
 from faster_whisper import WhisperModel
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,19 +15,37 @@ DIR_LEGENDAS = os.path.join(BASE_DIR, "03_legendas_sync")
 DIR_PRONTOS = os.path.join(BASE_DIR, "04_cortes_prontos")
 FONTE_PATH = os.path.join(BASE_DIR, "05_assets", "fontes", "Montserrat-ExtraBold.ttf")
 
+
 def cortar_silencios(audio_in, audio_out):
     print("1. Cortando silencios da narracao (ritmo dinamico Shorts)...")
     cmd = [
-        "ffmpeg", "-y", "-i", audio_in,
-        "-af", "silenceremove=stop_periods=-1:stop_duration=0.35:stop_threshold=-38dB,loudnorm=I=-14:TP=-1.5:LRA=11",
-        audio_out
+        "ffmpeg",
+        "-y",
+        "-i",
+        audio_in,
+        "-af",
+        "silenceremove=stop_periods=-1:stop_duration=0.35:stop_threshold=-38dB,loudnorm=I=-14:TP=-1.5:LRA=11",
+        audio_out,
     ]
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(
+        cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+
 
 def obter_duracao(arquivo):
-    cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", arquivo]
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        arquivo,
+    ]
     res = subprocess.run(cmd, capture_output=True, text=True, check=True)
     return float(res.stdout.strip())
+
 
 def alinhar_com_roteiro(palavras_whisper, texto_roteiro):
     palavras_oficiais = re.findall(r"\b[\w'-]+\b", texto_roteiro)
@@ -51,15 +70,18 @@ def alinhar_com_roteiro(palavras_whisper, texto_roteiro):
             qtd = j2 - j1
             passo = (t_fim - t_inicio) / max(qtd, 1)
             for k in range(qtd):
-                alinhadas.append({
-                    "word": palavras_oficiais[j1 + k],
-                    "start": t_inicio + k * passo,
-                    "end": t_inicio + (k + 1) * passo
-                })
+                alinhadas.append(
+                    {
+                        "word": palavras_oficiais[j1 + k],
+                        "start": t_inicio + k * passo,
+                        "end": t_inicio + (k + 1) * passo,
+                    }
+                )
         elif tag == "delete":
             for k in range(i1, i2):
                 alinhadas.append(palavras_whisper[k])
     return alinhadas
+
 
 def formatar_tempo_ass(segundos):
     h = int(segundos // 3600)
@@ -67,6 +89,7 @@ def formatar_tempo_ass(segundos):
     s = int(segundos % 60)
     cs = int((segundos - int(segundos)) * 100)
     return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
+
 
 def gerar_legenda_ass(palavras, caminho_ass, hook_texto=""):
     print("3. Gerando legendas sincronizadas + Safe Zone Shorts...")
@@ -85,7 +108,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     linhas = []
     if hook_texto:
-        linhas.append(f"Dialogue: 1,0:00:00.00,0:00:05.00,Hook,,0,0,0,,{{\\pos(540,480)}}{hook_texto.upper()}")
+        linhas.append(
+            f"Dialogue: 1,0:00:00.00,0:00:05.00,Hook,,0,0,0,,{{\\pos(540,480)}}{hook_texto.upper()}"
+        )
 
     bloco = []
     for p in palavras:
@@ -94,26 +119,46 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             ini = formatar_tempo_ass(bloco[0]["start"])
             fim = formatar_tempo_ass(bloco[-1]["end"])
             texto = " ".join([x["word"].upper() for x in bloco])
-            linhas.append(f"Dialogue: 0,{ini},{fim},Legenda,,0,0,0,,{{\\pos(540,1320)}}{texto}")
+            linhas.append(
+                f"Dialogue: 0,{ini},{fim},Legenda,,0,0,0,,{{\\pos(540,1320)}}{texto}"
+            )
             bloco = []
     if bloco:
         ini = formatar_tempo_ass(bloco[0]["start"])
         fim = formatar_tempo_ass(bloco[-1]["end"])
         texto = " ".join([x["word"].upper() for x in bloco])
-        linhas.append(f"Dialogue: 0,{ini},{fim},Legenda,,0,0,0,,{{\\pos(540,1320)}}{texto}")
+        linhas.append(
+            f"Dialogue: 0,{ini},{fim},Legenda,,0,0,0,,{{\\pos(540,1320)}}{texto}"
+        )
 
     with open(caminho_ass, "w", encoding="utf-8") as f:
         f.write(header + "\n".join(linhas))
 
-def montar_gameplay_dinamica(gameplay_path, duracao_alvo, temp_video, inicio_manual=None):
+
+def montar_gameplay_dinamica(
+    gameplay_path, duracao_alvo, temp_video, inicio_manual=None
+):
     print("4. Montando cortes dinamicos da gameplay (troca a cada 3.5s)...")
     duracao_bruta = obter_duracao(gameplay_path)
     if inicio_manual:
         cmd = [
-            "ffmpeg", "-y", "-ss", inicio_manual, "-t", str(duracao_alvo),
-            "-i", gameplay_path, "-c:v", "h264_amf", "-c:a", "aac", temp_video
+            "ffmpeg",
+            "-y",
+            "-ss",
+            inicio_manual,
+            "-t",
+            str(duracao_alvo),
+            "-i",
+            gameplay_path,
+            "-c:v",
+            "h264_amf",
+            "-c:a",
+            "aac",
+            temp_video,
         ]
-        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
         return
 
     tempo_acumulado = 0.0
@@ -130,20 +175,54 @@ def montar_gameplay_dinamica(gameplay_path, duracao_alvo, temp_video, inicio_man
             clipes_temp.append(clipe_nome)
 
             cmd_clip = [
-                "ffmpeg", "-y", "-ss", f"{start_rand:.2f}", "-t", f"{dur_clipe:.2f}",
-                "-i", gameplay_path, "-c:v", "h264_amf", "-b:v", "15M", "-r", "60",
-                "-c:a", "aac", "-ar", "44100", clipe_nome
+                "ffmpeg",
+                "-y",
+                "-ss",
+                f"{start_rand:.2f}",
+                "-t",
+                f"{dur_clipe:.2f}",
+                "-i",
+                gameplay_path,
+                "-c:v",
+                "h264_amf",
+                "-b:v",
+                "15M",
+                "-r",
+                "60",
+                "-c:a",
+                "aac",
+                "-ar",
+                "44100",
+                clipe_nome,
             ]
-            subprocess.run(cmd_clip, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(
+                cmd_clip,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
             tempo_acumulado += dur_clipe
             idx += 1
 
         with open(lista_txt, "w", encoding="utf-8") as f:
-            for c in clipes_temp:
-                f.write(f"file '{c}'\n")
+            f.writelines(f"file '{c}'\n" for c in clipes_temp)
 
-        cmd_concat = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", lista_txt, "-c", "copy", temp_video]
-        subprocess.run(cmd_concat, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cmd_concat = [
+            "ffmpeg",
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            lista_txt,
+            "-c",
+            "copy",
+            temp_video,
+        ]
+        subprocess.run(
+            cmd_concat, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
     finally:
         for c in clipes_temp:
             if os.path.exists(c):
@@ -151,12 +230,25 @@ def montar_gameplay_dinamica(gameplay_path, duracao_alvo, temp_video, inicio_man
         if os.path.exists(lista_txt):
             os.remove(lista_txt)
 
+
 def main():
     parser = argparse.ArgumentParser(description="Editor Shorts/TikTok/Reels - GTA 6")
-    parser.add_argument("--nome", required=True, help="Nome base dos arquivos (ex: corte01)")
-    parser.add_argument("--gameplay", required=True, help="Video na pasta 01_gameplay_bruta (ex: gameplay.mp4)")
-    parser.add_argument("--inicio", default=None, help="Opcional: tempo fixo (ex: 00:02:15). Se vazio, faz cortes automaticos a cada 3.5s")
-    parser.add_argument("--hook", default="", help="Opcional: titulo chamativo nos primeiros 5s")
+    parser.add_argument(
+        "--nome", required=True, help="Nome base dos arquivos (ex: corte01)"
+    )
+    parser.add_argument(
+        "--gameplay",
+        required=True,
+        help="Video na pasta 01_gameplay_bruta (ex: gameplay.mp4)",
+    )
+    parser.add_argument(
+        "--inicio",
+        default=None,
+        help="Opcional: tempo fixo (ex: 00:02:15). Se vazio, faz cortes automaticos a cada 3.5s",
+    )
+    parser.add_argument(
+        "--hook", default="", help="Opcional: titulo chamativo nos primeiros 5s"
+    )
     args = parser.parse_args()
 
     audio_orig = None
@@ -169,8 +261,14 @@ def main():
     roteiro_path = os.path.join(DIR_NARRACAO, args.nome + ".txt")
     gameplay_path = os.path.join(DIR_GAMEPLAY, args.gameplay)
 
-    if not audio_orig or not os.path.exists(roteiro_path) or not os.path.exists(gameplay_path):
-        print("Erro: Verifique se o audio, o .txt do roteiro e a gameplay existem nas pastas.")
+    if (
+        not audio_orig
+        or not os.path.exists(roteiro_path)
+        or not os.path.exists(gameplay_path)
+    ):
+        print(
+            "Erro: Verifique se o audio, o .txt do roteiro e a gameplay existem nas pastas."
+        )
         sys.exit(1)
 
     audio_limpo = os.path.join(DIR_LEGENDAS, f"{args.nome}_limpo.wav")
@@ -178,7 +276,9 @@ def main():
     duracao_final = obter_duracao(audio_limpo)
 
     if duracao_final > 59.5:
-        print(f"AVISO: Sua narracao tem {duracao_final:.1f}s. Para YouTube Shorts, mantenha abaixo de 59s!")
+        print(
+            f"AVISO: Sua narracao tem {duracao_final:.1f}s. Para YouTube Shorts, mantenha abaixo de 59s!"
+        )
 
     print("2. Sincronizando voz com roteiro...")
     model = WhisperModel("small", device="cpu", compute_type="int8")
@@ -186,7 +286,9 @@ def main():
     palavras_whisper = []
     for seg in segments:
         for w in seg.words:
-            palavras_whisper.append({"word": w.word.strip(), "start": w.start, "end": w.end})
+            palavras_whisper.append(
+                {"word": w.word.strip(), "start": w.start, "end": w.end}
+            )
 
     with open(roteiro_path, "r", encoding="utf-8") as f:
         texto_roteiro = f.read()
@@ -213,20 +315,45 @@ def main():
     )
 
     cmd_render = [
-        "ffmpeg", "-y",
-        "-i", gameplay_temp,
-        "-i", audio_limpo,
-        "-filter_complex", filtro_complexo,
-        "-map", "[vout]", "-map", "[aout]",
-        "-c:v", "h264_amf", "-usage", "transcoding", "-quality", "speed", "-rc", "cqp", "-qp_i", "19", "-qp_p", "19",
-        "-r", "60", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "192k",
-        video_saida
+        "ffmpeg",
+        "-y",
+        "-i",
+        gameplay_temp,
+        "-i",
+        audio_limpo,
+        "-filter_complex",
+        filtro_complexo,
+        "-map",
+        "[vout]",
+        "-map",
+        "[aout]",
+        "-c:v",
+        "h264_amf",
+        "-usage",
+        "transcoding",
+        "-quality",
+        "speed",
+        "-rc",
+        "cqp",
+        "-qp_i",
+        "19",
+        "-qp_p",
+        "19",
+        "-r",
+        "60",
+        "-pix_fmt",
+        "yuv420p",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        video_saida,
     ]
     subprocess.run(cmd_render, check=True)
     if os.path.exists(gameplay_temp):
         os.remove(gameplay_temp)
     print(f"PRONTO! Seu video vertical esta em: {video_saida}")
+
 
 if __name__ == "__main__":
     main()
